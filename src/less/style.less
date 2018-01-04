@@ -1,0 +1,86 @@
+@import (less) "~semantic-ui-css/semantic.min.css";
+
+.page{
+  display: flex;
+  flex-flow: column;
+  min-height: 100vh;
+}
+
+.top-menu{
+  flex: 0 1 auto;
+  .burger-button{
+    padding: 5px;
+
+    &:hover{
+      cursor: pointer;
+    }
+
+    & > *{
+      display: block;
+      width: 25px;
+      height: 3px;
+      background-color: black;
+      margin: 4px 0;
+    }
+
+
+    &.mobile-only{
+      display: none;
+    }
+  }
+
+  .first-line{
+    width: 150px;
+  }
+
+  @media (max-width: 767px){
+    .item{
+      display: none !important;
+
+      &.first-line{
+        display: flex !important;
+        justify-content: space-between;
+
+        .burger-button.mobile-only{
+          display: inline;
+        }
+      }
+    }
+
+    .visible > .item{
+      display: flex !important;
+    }
+  }
+}
+
+.left-sidebar{
+  flex: 1 1 auto;
+  position: relative;
+
+  .item-type{
+    &:hover{
+      cursor: pointer;
+      background-color: #555 !important;
+    }
+  }
+
+  .pushable{
+    position: absolute;
+    width: 100%;
+    //min-height: 100%;
+  }
+}
+
+.data-table{
+  .segment.pagination{
+    margin-top: -15px;
+    padding: 7px 14px;
+
+    &:after{
+      content: ' ';
+      display: block;
+      visibility: hidden;
+      clear: both;
+    }
+  }
+}
