@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Icon, Table, Button, Input } from 'semantic-ui-react';
 import axios from 'axios';
 import { API_URL } from '../../constants';
+import DataConvertor from '../../services/DataConvertor';
 
 class EditableTableRow extends Component {
     constructor(props) {
@@ -30,7 +31,12 @@ class EditableTableRow extends Component {
     }
 
     save() {
-        axios.patch(`${API_URL}items/${this.state.item.id}.json`, this.state.item)
+        let item = {};
+        Object.keys(this.state.item).forEach(key => {
+            item[key] = DataConvertor.toObject(this.state.item[key]);
+        });
+        delete item.id;
+        axios.patch(`${API_URL}items/${this.state.item.id}.json`, item)
             .then(res => {
                 this.setState({
                     mode: 'read'
@@ -59,7 +65,7 @@ class EditableTableRow extends Component {
                             innerElement = <span>{this.state.item[e]}</span>;
                             break;
                         case 'edit':
-                            innerElement = <Input placeholder={e} name={e} value={this.state.item[e]} onChange={this.valueChanged} fluid/>;
+                            innerElement = <Input placeholder={e} name={e} value={this.state.item[e] || ''} onChange={this.valueChanged} fluid/>;
                             break;
                         }
 

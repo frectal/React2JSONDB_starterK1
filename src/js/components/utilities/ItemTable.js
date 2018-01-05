@@ -3,6 +3,7 @@ import { Icon, Menu, Table, Segment, Button, Input, Header } from 'semantic-ui-r
 import EditableTableRow from '../utilities/EditableTableRow';
 import axios from 'axios';
 import { API_URL } from '../../constants';
+import DataConvertor from '../../services/DataConvertor';
 
 class ItemTable extends Component {
     constructor(props) {
@@ -23,7 +24,7 @@ class ItemTable extends Component {
             newItem: {},
             pagination: {
                 page: 1,
-                itemsPerPage: 3
+                itemsPerPage: 10
             }
         };
         newType.fields.forEach(e => {
@@ -35,15 +36,20 @@ class ItemTable extends Component {
     refreshItems() {
         axios.get(`${API_URL}items.json?orderBy="type"&equalTo="${this.state.type.id}"`)
             .then(res => {
-                this.setState({
-                    items: Object.keys(res.data)
-                        .reverse()
-                        .map(key => ({
-                            ...res.data[key],
+                let items =  Object.keys(res.data)
+                    .reverse()
+                    .map(key => {
+                        let singleItem = {...res.data[key]};
+                        this.state.type.fields.forEach(field => {
+                            singleItem[field] = DataConvertor.toString(singleItem[field]);
+                        });
+                        return {
+                            ...singleItem,
                             id: key
-                        }))
-                        .sort((a, b) => (a.created < b.created))
-                });
+                        }
+                    })
+                    .sort((a, b) => (a.created < b.created));
+                this.setState({ items });
             });
     };
 
@@ -68,8 +74,12 @@ class ItemTable extends Component {
     }
 
     createItem() {
+        let newItem = {};
+        Object.keys(this.state.newItem).forEach(key => {
+            newItem[key] = DataConvertor.toObject(this.state.newItem[key]);
+        });
         axios.post(`${API_URL}items.json`, {
-            ...this.state.newItem,
+            ...newItem,
             created: Date.now(),
             type: this.state.type.id
         })
