@@ -33,7 +33,6 @@ class HeaderComponent extends Component {
     }
 }
 
-
 const mapStateToProps = (state) => {
     return {
         isMenuVisible: state.layout.isMenuVisible

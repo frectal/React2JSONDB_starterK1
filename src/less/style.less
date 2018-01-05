@@ -58,7 +58,7 @@
   position: relative;
 
   .item-type{
-    &:hover{
+    &:hover,.active{
       cursor: pointer;
       background-color: #555 !important;
     }
@@ -81,6 +81,10 @@
       display: block;
       visibility: hidden;
       clear: both;
+    }
+
+    .item:hover{
+      cursor: pointer;
     }
   }
 }

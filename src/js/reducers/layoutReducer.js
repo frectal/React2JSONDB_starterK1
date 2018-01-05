@@ -7,16 +7,16 @@ const initialState = {
 
 export default (state = initialState, action = {}) => {
     switch (action.type) {
-        case TOGGLE_MENU:
-            return {
-                ...state,
-                isMenuVisible: !state.isMenuVisible
-            };
-        case TOGGLE_SIDEBAR:
-            return {
-                ...state,
-                isSidebarVisible: !state.isSidebarVisible
-            };
-        default: return state;
+    case TOGGLE_MENU:
+        return {
+            ...state,
+            isMenuVisible: !state.isMenuVisible
+        };
+    case TOGGLE_SIDEBAR:
+        return {
+            ...state,
+            isSidebarVisible: !state.isSidebarVisible
+        };
+    default: return state;
     }
 };
