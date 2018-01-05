@@ -1,0 +1,1 @@
+export const API_URL = 'https://test-9e3a0.firebaseio.com/';

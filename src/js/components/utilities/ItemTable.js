@@ -1,55 +1,125 @@
-import React, { Component } from 'react'
-import { Icon, Label, Menu, Table, Segment, Button, Input } from 'semantic-ui-react'
+import React, { Component } from 'react';
+import { Icon, Menu, Table, Segment, Button, Input, Header } from 'semantic-ui-react';
 import EditableTableRow from '../utilities/EditableTableRow';
+import axios from 'axios';
+import { API_URL } from '../../constants';
 
-class ItemTable extends Component{
-    constructor(props){
+class ItemTable extends Component {
+    constructor(props) {
         super(props);
-        this.state = {
-            type: 'Employees',
-            attrs: ['a','b','c'],
-            items: [{
-                a: 1,
-                b: 3,
-                c: 123
-            }, {
-                a: 2,
-                b: 4,
-                c: 234
-            }, {
-                a: 3,
-                b: 5,
-                c: 345
-            }],
-            newItem: {}
-        };
-        this.state.attrs.forEach(e => {
-            this.state.newItem[e] = '';
-        })
+        this.state = {};
+
+        this.initialize = this.initialize.bind(this);
+        this.newItemValueUpdated = this.newItemValueUpdated.bind(this);
+        this.refreshItems = this.refreshItems.bind(this);
+        this.createItem = this.createItem.bind(this);
+        this.changePage = this.changePage.bind(this);
     }
 
-    render(){
+    initialize(newType) {
+        let newState = {
+            type: newType,
+            items: [],
+            newItem: {},
+            pagination: {
+                page: 1,
+                itemsPerPage: 3
+            }
+        };
+        newType.fields.forEach(e => {
+            newState.newItem[e] = '';
+        });
+        this.setState(newState, this.refreshItems);
+    }
+
+    refreshItems() {
+        axios.get(`${API_URL}items.json?orderBy="type"&equalTo="${this.state.type.id}"`)
+            .then(res => {
+                this.setState({
+                    items: Object.keys(res.data)
+                        .reverse()
+                        .map(key => ({
+                            ...res.data[key],
+                            id: key
+                        }))
+                        .sort((a, b) => (a.created < b.created))
+                });
+            });
+    };
+
+    componentWillMount() {
+        this.initialize(this.props.type);
+    }
+
+    componentWillReceiveProps(nProps) {
+        if (nProps.type.id !== this.state.type.id) {
+            this.initialize(nProps.type);
+        }
+    }
+
+    newItemValueUpdated(e) {
+        this.setState({
+            ...this.state,
+            newItem: {
+                ...this.state.newItem,
+                [e.target.name]: e.target.value
+            }
+        });
+    }
+
+    createItem() {
+        axios.post(`${API_URL}items.json`, {
+            ...this.state.newItem,
+            created: Date.now(),
+            type: this.state.type.id
+        })
+            .then(() => {
+                let newItem = {};
+                this.state.type.fields.forEach(field => {
+                    newItem[field] = '';
+                });
+                this.setState({newItem}, this.refreshItems);
+            });
+    }
+
+    changePage(direction) {
+        this.setState({
+            pagination: {
+                ...this.state.pagination,
+                page: this.state.pagination.page + direction
+            }
+        });
+    }
+
+    render() {
+        let offset = this.state.pagination.page * this.state.pagination.itemsPerPage - this.state.pagination.itemsPerPage;
+        let lastPage = this.state.pagination.page * this.state.pagination.itemsPerPage >= this.state.items.length,
+            firstPage = this.state.pagination.page === 1;
+
+        let items = [...this.state.items].splice(offset, this.state.pagination.itemsPerPage);
+
         return (
             <div className="data-table">
+                <Header as='h2'>{this.state.type.title}</Header>
                 <Table fixed>
                     <Table.Header>
                         <Table.Row>
-                            <Table.HeaderCell colSpan={this.state.attrs.length+1}>Add new {this.state.type}</Table.HeaderCell>
+                            <Table.HeaderCell colSpan={this.state.type.fields.length + 1}>Add new {this.state.type.title}</Table.HeaderCell>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
-                        <Table.Row  active={this.state.mode == 'edit'}>
+                        <Table.Row active={this.state.mode === 'edit'}>
                             {
-                                Object.keys(this.state.newItem).map((e,i) => {
+                                Object.keys(this.state.newItem).map((e, i) => {
                                     return (
                                         <Table.Cell key={e}>
-                                            <Input placeholder={e} value={this.state.newItem[e]} onChange={this.valueChanged} fluid/>
+                                            <Input placeholder={e} name={e} value={this.state.newItem[e]} onChange={this.newItemValueUpdated} fluid/>
                                         </Table.Cell>
                                     );
                                 })
                             }
                             <Table.Cell collapsing>
-                                <Button className='create-new-item-btn' icon color='green' fluid size='small' onClick={this.save}>
+                                <Button className='create-new-item-btn' icon color='green' fluid size='small' onClick={this.createItem}>
                                     <Icon name='add'/>
                                 </Button>
                             </Table.Cell>
@@ -60,8 +130,8 @@ class ItemTable extends Component{
                     <Table.Header>
                         <Table.Row>
                             {
-                                this.state.attrs.map((e,i) => {
-                                    return <Table.HeaderCell key={i}>{e}</Table.HeaderCell>
+                                this.state.type.fields.map((e, i) => {
+                                    return <Table.HeaderCell key={i}>{e}</Table.HeaderCell>;
                                 })
                             }
                             <Table.HeaderCell collapsing>Actions</Table.HeaderCell>
@@ -69,22 +139,20 @@ class ItemTable extends Component{
                     </Table.Header>
                     <Table.Body>
                         {
-                            this.state.items.map((e,i) => {
-                                return <EditableTableRow item={e} attrs={this.state.attrs} key={i}/>
-                            })
+                            items.length
+                                ? items.map((e, i) => {
+                                    return <EditableTableRow refresh={this.refreshItems} item={e} attrs={this.state.type.fields} key={e.id}/>;
+                                })
+                                : <Table.Row><Table.Cell colSpan={this.state.type.fields.length + 1}>Sorry, there aren't items on this page.</Table.Cell></Table.Row>
                         }
                     </Table.Body>
                 </Table>
                 <Segment className='pagination'>
                     <Menu size='tiny' floated='right' pagination>
-                        <Menu.Item icon>
+                        <Menu.Item disabled={firstPage} onClick={() => !firstPage && this.changePage(-1)} icon>
                             <Icon name='left chevron' />
                         </Menu.Item>
-                        <Menu.Item>1</Menu.Item>
-                        <Menu.Item>2</Menu.Item>
-                        <Menu.Item>3</Menu.Item>
-                        <Menu.Item>4</Menu.Item>
-                        <Menu.Item icon>
+                        <Menu.Item disabled={lastPage} onClick={() => !lastPage && this.changePage(1)} icon>
                             <Icon name='right chevron' />
                         </Menu.Item>
                     </Menu>
@@ -94,4 +162,4 @@ class ItemTable extends Component{
     }
 }
 
-export default ItemTable
+export default ItemTable;

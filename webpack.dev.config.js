@@ -24,7 +24,6 @@ module.exports = {
             {
                 test: /\.jsx?$/,
                 use: [
-                    'react-hot-loader',
                     'babel-loader?presets[]=es2015&presets[]=react&presets[]=stage-0'
                 ],
                 exclude: /node_modules/
@@ -43,7 +42,7 @@ module.exports = {
         new webpack.NoEmitOnErrorsPlugin()
     ],
     resolve: {
-        extensions: ['.js'],
+        extensions: ['.js', '.css'],
         alias: {
             'CHistory' : path.resolve(__dirname, 'src/js/history.js'),
         }
@@ -57,6 +56,7 @@ module.exports = {
         inline: true,
         host: '0.0.0.0',
         port: 3000,
+        publicPath: '/dist/',
         headers: {
             'Access-Control-Allow-Origin': '*',
         },
