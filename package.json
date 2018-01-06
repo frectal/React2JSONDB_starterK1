@@ -36,8 +36,7 @@
     "semantic-ui-less": "^2.2.11",
     "style-loader": "^0.19.1",
     "uglifyjs-webpack-plugin": "^0.4.6",
-    "webpack": "^3.3.0",
-    "webpack-dev-server": "^2.9.7"
+    "webpack": "^3.3.0"
   },
   "dependencies": {
     "axios": "^0.16.2",
